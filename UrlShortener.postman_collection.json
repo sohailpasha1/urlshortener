@@ -1,0 +1,155 @@
+{
+  "info": {
+    "name": "URL Shortener",
+    "_postman_id": "a1130f21-6ce4-4cbb-975b-b2179080c001",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "shortCode",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Create short URL",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"url\": \"https://patternpulse.substack.com/p/spark-rdds-dataframes-and-datasets\",\n  \"customAlias\": \"sparkrdd\"\n,\n  \"ttlSeconds\": 3600\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/urls/create",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "urls",
+            "create"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "  pm.collectionVariables.set('shortCode', pm.response.json().shortCode);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get metadata",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/urls/{{shortCode}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "urls",
+            "{{shortCode}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get analytics",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/urls/{{shortCode}}/analytics",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "urls",
+            "{{shortCode}}",
+            "analytics"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Redirect",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/{{shortCode}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{shortCode}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Error - invalid scheme",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"url\":\"javascript:alert(1)\"}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/urls/create",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "urls",
+            "create"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/actuator/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "actuator",
+            "health"
+          ]
+        }
+      }
+    }
+  ]
+}

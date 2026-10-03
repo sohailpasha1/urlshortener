@@ -1,24 +1,29 @@
 package com.urlshortener.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("app")
+@ConfigurationProperties(prefix = "app")
 public class AppProperties {
-    private static final Logger log = LoggerFactory.getLogger(AppProperties.class);
-    private String baseUrl;
     private final Shortcode shortcode = new Shortcode();
     private final Ratelimit ratelimit = new Ratelimit();
     private final Cache cache = new Cache();
+    private String baseUrl = "http://localhost:8080";
+    private long maxTtlSeconds = 157680000L;
 
     public String getBaseUrl() {
         return baseUrl;
     }
 
     public void setBaseUrl(String baseUrl) {
-        log.debug("Configuring base URL");
         this.baseUrl = baseUrl;
+    }
+
+    public long getMaxTtlSeconds() {
+        return maxTtlSeconds;
+    }
+
+    public void setMaxTtlSeconds(long maxTtlSeconds) {
+        this.maxTtlSeconds = maxTtlSeconds;
     }
 
     public Shortcode getShortcode() {
@@ -35,34 +40,106 @@ public class AppProperties {
 
     public static class Shortcode {
         private int length = 7;
+        private String strategy = "random";
+        private int feistelBits = 40;
+        private int feistelRounds = 4;
+        private long feistelKey = 2685821657736338717L;
+        private long sequenceBlock = 1000;
 
         public int getLength() {
             return length;
         }
 
-        public void setLength(int length) {
-            this.length = length;
+        public void setLength(int v) {
+            length = v;
+        }
+
+        public String getStrategy() {
+            return strategy;
+        }
+
+        public void setStrategy(String v) {
+            strategy = v;
+        }
+
+        public int getFeistelBits() {
+            return feistelBits;
+        }
+
+        public void setFeistelBits(int v) {
+            feistelBits = v;
+        }
+
+        public int getFeistelRounds() {
+            return feistelRounds;
+        }
+
+        public void setFeistelRounds(int v) {
+            feistelRounds = v;
+        }
+
+        public long getFeistelKey() {
+            return feistelKey;
+        }
+
+        public void setFeistelKey(long v) {
+            feistelKey = v;
+        }
+
+        public long getSequenceBlock() {
+            return sequenceBlock;
+        }
+
+        public void setSequenceBlock(long v) {
+            sequenceBlock = v;
         }
     }
 
     public static class Ratelimit {
         private int capacity = 100;
         private int refillPerMinute = 100;
+        private boolean trustForwardedFor = false;
+        private int maxClients = 100000;
+        private int clientIdleMinutes = 30;
 
         public int getCapacity() {
             return capacity;
         }
 
-        public void setCapacity(int capacity) {
-            this.capacity = capacity;
+        public void setCapacity(int v) {
+            capacity = v;
         }
 
         public int getRefillPerMinute() {
             return refillPerMinute;
         }
 
-        public void setRefillPerMinute(int refillPerMinute) {
-            this.refillPerMinute = refillPerMinute;
+        public void setRefillPerMinute(int v) {
+            refillPerMinute = v;
+        }
+
+        public boolean isTrustForwardedFor() {
+            return trustForwardedFor;
+        }
+
+        public void setTrustForwardedFor(boolean v) {
+            trustForwardedFor = v;
+        }
+
+        public int getMaxClients() {
+            return maxClients;
+        }
+
+        public void setMaxClients(int v) {
+            maxClients = v;
+        }
+
+        public int getClientIdleMinutes() {
+            return clientIdleMinutes;
+        }
+
+        public void setClientIdleMinutes(int v) {
+            clientIdleMinutes = v;
         }
     }
 
@@ -74,16 +151,16 @@ public class AppProperties {
             return enabled;
         }
 
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
+        public void setEnabled(boolean v) {
+            enabled = v;
         }
 
         public int getMaxSize() {
             return maxSize;
         }
 
-        public void setMaxSize(int maxSize) {
-            this.maxSize = maxSize;
+        public void setMaxSize(int v) {
+            maxSize = v;
         }
     }
 }

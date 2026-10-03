@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Size;
 
 public record CreateShortUrlRequest(
         @NotBlank @Size(max = 2048) String url,
-        @Pattern(regexp = "^[a-zA-Z0-9_-]{3,16}$") String customAlias,
-        Long ttlSeconds
-) {
+        @Pattern(regexp = "^[a-zA-Z0-9_\\-]{3,16}$") String customAlias,
+        Long ttlSeconds) {
 }

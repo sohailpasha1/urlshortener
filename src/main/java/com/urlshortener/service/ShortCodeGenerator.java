@@ -1,20 +1,24 @@
 package com.urlshortener.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.urlshortener.config.AppProperties;
+import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
 
-public final class ShortCodeGenerator {
-    private static final Logger log = LoggerFactory.getLogger(ShortCodeGenerator.class);
-    static final String ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+@Component
+public class ShortCodeGenerator {
+    static final String ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private final SecureRandom random = new SecureRandom();
+    private final AppProperties props;
 
-    public String generate(int length) {
-        log.trace("Generating random shortcode of length {}", length);
-        if (length < 1) throw new IllegalArgumentException("length must be at least 1");
-        StringBuilder sb = new StringBuilder(length);
-        for (int i = 0; i < length; i++) sb.append(ALPHABET.charAt(random.nextInt(ALPHABET.length())));
-        return sb.toString();
+    public ShortCodeGenerator(AppProperties props) {
+        this.props = props;
+    }
+
+    public String generate() {
+        StringBuilder s = new StringBuilder();
+        int n = props.getShortcode().getLength();
+        for (int i = 0; i < n; i++) s.append(ALPHABET.charAt(random.nextInt(ALPHABET.length())));
+        return s.toString();
     }
 }

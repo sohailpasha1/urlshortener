@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "short_url", indexes = @Index(name = "ux_short_url_short_code", columnList = "short_code", unique = true))
+@Table(name = "short_url", indexes = @Index(name = "idx_short_url_code", columnList = "short_code", unique = true))
 public class ShortUrl {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,7 +14,7 @@ public class ShortUrl {
     private String shortCode;
     @Column(name = "original_url", nullable = false, length = 2048)
     private String originalUrl;
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
     @Column(name = "expires_at")
     private Instant expiresAt;
@@ -22,7 +22,7 @@ public class ShortUrl {
     private long clickCount;
     @Column(name = "last_accessed_at")
     private Instant lastAccessedAt;
-    @Column(name = "active", nullable = false)
+    @Column(nullable = false)
     private boolean active = true;
 
     protected ShortUrl() {
@@ -33,7 +33,7 @@ public class ShortUrl {
         this.originalUrl = originalUrl;
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
-        this.clickCount = 0;
+        this.clickCount = 0L;
         this.active = true;
     }
 
@@ -59,6 +59,10 @@ public class ShortUrl {
 
     public Instant getExpiresAt() {
         return expiresAt;
+    }
+
+    public void setExpiresAt(Instant expiresAt) {
+        this.expiresAt = expiresAt;
     }
 
     public long getClickCount() {

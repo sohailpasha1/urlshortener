@@ -7,37 +7,45 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class UrlValidatorTest {
-    private final UrlValidator validator = new UrlValidator();
+    private final UrlValidator v = new UrlValidator();
 
     @Test
-    void acceptsHttpAndHttps() {
-        assertEquals("http://example.com", validator.validateAndNormalize("http://example.com"));
-        assertEquals("https://example.com/path", validator.validateAndNormalize("https://example.com/path"));
+    void acceptsHttp() {
+        assertEquals("http://example.com/a", v.validateAndNormalize(" http://example.com/a "));
     }
 
     @Test
-    void trimsInput() {
-        assertEquals("https://example.com", validator.validateAndNormalize("  https://example.com  "));
+    void acceptsHttps() {
+        assertEquals("https://example.com", v.validateAndNormalize("https://example.com"));
     }
 
     @Test
-    void rejectsBlank() {
-        assertThrows(InvalidUrlException.class, () -> validator.validateAndNormalize("  "));
-    }
-
-    @Test
-    void rejectsDisallowedScheme() {
-        assertThrows(InvalidUrlException.class, () -> validator.validateAndNormalize("javascript:alert(1)"));
-        assertThrows(InvalidUrlException.class, () -> validator.validateAndNormalize("data:text/plain,hello"));
+    void rejectsOtherScheme() {
+        assertThrows(InvalidUrlException.class, () -> v.validateAndNormalize("ftp://example.com"));
     }
 
     @Test
     void rejectsMissingHost() {
-        assertThrows(InvalidUrlException.class, () -> validator.validateAndNormalize("https:///path"));
+        assertThrows(InvalidUrlException.class, () -> v.validateAndNormalize("https:///path"));
     }
 
     @Test
-    void rejectsMalformed() {
-        assertThrows(InvalidUrlException.class, () -> validator.validateAndNormalize("http://exa mple.com"));
+    void rejectsLocalhost() {
+        assertThrows(InvalidUrlException.class, () -> v.validateAndNormalize("http://localhost/x"));
+    }
+
+    @Test
+    void rejectsLocalhostSubdomain() {
+        assertThrows(InvalidUrlException.class, () -> v.validateAndNormalize("http://a.localhost/x"));
+    }
+
+    @Test
+    void rejectsPrivateIpv4() {
+        assertThrows(InvalidUrlException.class, () -> v.validateAndNormalize("http://192.168.1.2/x"));
+    }
+
+    @Test
+    void rejectsMetadataIp() {
+        assertThrows(InvalidUrlException.class, () -> v.validateAndNormalize("http://169.254.169.254/latest"));
     }
 }

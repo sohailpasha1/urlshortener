@@ -1,78 +1,58 @@
 package com.urlshortener.cache;
 
 import com.urlshortener.config.AppProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class ShortUrlCache {
-    private static final Logger log = LoggerFactory.getLogger(ShortUrlCache.class);
     private final boolean enabled;
     private final int maxSize;
-    private final Map<String, CachedUrl> cache;
-    private final AtomicLong hitCount = new AtomicLong();
-    private final AtomicLong missCount = new AtomicLong();
+    private final Map<String, CachedUrl> map;
+    private final AtomicLong hits = new AtomicLong(), misses = new AtomicLong();
 
-
-    @Autowired
-    public ShortUrlCache(AppProperties properties) {
-        this.enabled = properties.getCache().isEnabled();
-        this.maxSize = properties.getCache().getMaxSize();
-
-        this.cache = Collections.synchronizedMap(
-                new LinkedHashMap<>(16, 0.75f, true) {
-                    @Override
-                    protected boolean removeEldestEntry(
-                            Map.Entry<String, CachedUrl> eldest) {
-                        boolean evict = size() > maxSize;
-                        if (evict) {
-                            log.debug("LRU eviction for short code={}", eldest.getKey());
-                        }
-                        return evict;
-                    }
-                }
-        );
-
-        log.info("ShortUrlCache initialized: enabled={}, maxSize={}",
-                enabled, maxSize);
+    public ShortUrlCache(AppProperties p) {
+        enabled = p.getCache().isEnabled();
+        maxSize = p.getCache().getMaxSize();
+        map = Collections.synchronizedMap(new LinkedHashMap<>(16, .75f, true) {
+            protected boolean removeEldestEntry(Map.Entry<String, CachedUrl> e) {
+                return size() > ShortUrlCache.this.maxSize;
+            }
+        });
     }
 
-    public CachedUrl get(String shortCode) {
-        log.trace("Cache get for shortcode {}", shortCode);
+    public CachedUrl get(String k) {
         if (!enabled) {
-            missCount.incrementAndGet();
+            misses.incrementAndGet();
             return null;
         }
-        CachedUrl value = cache.get(shortCode);
-        if (value == null) missCount.incrementAndGet();
-        else hitCount.incrementAndGet();
-        return value;
+        CachedUrl v = map.get(k);
+        if (v == null) misses.incrementAndGet();
+        else hits.incrementAndGet();
+        return v;
     }
 
-    public void put(String shortCode, CachedUrl value) {
-        log.trace("Cache put for shortcode {}", shortCode);
-        if (enabled) cache.put(shortCode, value);
+    public void put(String k, CachedUrl v) {
+        if (enabled && maxSize > 0) map.put(k, v);
     }
 
-    public void evict(String shortCode) {
-        log.debug("Evicting shortcode {}", shortCode);
-        cache.remove(shortCode);
+    public void evict(String k) {
+        map.remove(k);
     }
 
     public int size() {
-        return cache.size();
+        return map.size();
     }
 
-    public long hitCount() {
-        return hitCount.get();
+    public long hits() {
+        return hits.get();
     }
 
-    public long missCount() {
-        return missCount.get();
+    public long misses() {
+        return misses.get();
     }
 }

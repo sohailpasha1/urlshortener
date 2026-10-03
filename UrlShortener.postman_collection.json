@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "URL Shortener",
-    "_postman_id": "a1130f21-6ce4-4cbb-975b-b2179080c001",
+    "_postman_id": "4f8f1b34-2c8b-4b10-9b7a-1a2d0f5b8c11",
+    "name": "URL Shortener API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -16,7 +16,7 @@
   ],
   "item": [
     {
-      "name": "Create short URL",
+      "name": "Create short URL (custom alias + TTL)",
       "request": {
         "method": "POST",
         "header": [
@@ -27,7 +27,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"url\": \"https://patternpulse.substack.com/p/spark-rdds-dataframes-and-datasets\",\n  \"customAlias\": \"sparkrdd\"\n,\n  \"ttlSeconds\": 3600\n}"
+          "raw": "{\n  \"url\": \"https://example.com/docs\",\n  \"customAlias\": \"docs\",\n  \"ttlSeconds\": 3600\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/urls/create",
@@ -41,22 +41,10 @@
             "create"
           ]
         }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "if (pm.response.code === 201) {",
-              "  pm.collectionVariables.set('shortCode', pm.response.json().shortCode);",
-              "}"
-            ]
-          }
-        }
-      ]
+      }
     },
     {
-      "name": "Get metadata",
+      "name": "Get short URL metadata",
       "request": {
         "method": "GET",
         "url": {
@@ -93,9 +81,10 @@
       }
     },
     {
-      "name": "Redirect",
+      "name": "Redirect (302)",
       "request": {
         "method": "GET",
+        "description": "Disable Postman's auto-follow-redirects setting if you want to inspect the 302 response and Location header.",
         "url": {
           "raw": "{{baseUrl}}/{{shortCode}}",
           "host": [
@@ -108,7 +97,7 @@
       }
     },
     {
-      "name": "Error - invalid scheme",
+      "name": "Error — invalid scheme (400)",
       "request": {
         "method": "POST",
         "header": [
@@ -119,7 +108,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"url\":\"javascript:alert(1)\"}"
+          "raw": "{\n  \"url\": \"ftp://example.com/file\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/urls/create",
@@ -136,7 +125,25 @@
       }
     },
     {
-      "name": "Health",
+      "name": "Error — unknown code (404)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/urls/noSuchCode",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "urls",
+            "noSuchCode"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Health (Actuator)",
       "request": {
         "method": "GET",
         "url": {

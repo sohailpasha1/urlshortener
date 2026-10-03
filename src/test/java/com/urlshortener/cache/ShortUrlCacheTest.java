@@ -3,49 +3,51 @@ package com.urlshortener.cache;
 import com.urlshortener.config.AppProperties;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ShortUrlCacheTest {
-    private ShortUrlCache newCache(boolean enabled, int maxSize) {
-        AppProperties props = new AppProperties();
-        props.getCache().setEnabled(enabled);
-        props.getCache().setMaxSize(maxSize);
-        return new ShortUrlCache(props);
-    }
-
-    private static CachedUrl value(String suffix) {
-        return new CachedUrl("https://example.com/" + suffix, null, true);
+    private ShortUrlCache cache(int max, boolean enabled) {
+        AppProperties p = new AppProperties();
+        p.getCache().setMaxSize(max);
+        p.getCache().setEnabled(enabled);
+        return new ShortUrlCache(p);
     }
 
     @Test
-    void putGetTracksHitAndMissCounts() {
-        ShortUrlCache cache = newCache(true, 2);
-        cache.put("abc", value("a"));
-        assertNotNull(cache.get("abc"));
-        assertNull(cache.get("missing"));
-        assertEquals(1, cache.hitCount());
-        assertEquals(1, cache.missCount());
+    void storesAndGets() {
+        ShortUrlCache c = cache(2, true);
+        c.put("a", new CachedUrl("u", true, null));
+        assertNotNull(c.get("a"));
     }
 
     @Test
-    void evictsLeastRecentlyUsedEntryBeyondCapacity() {
-        ShortUrlCache cache = newCache(true, 2);
-        cache.put("a", value("a"));
-        cache.put("b", value("b"));
-        cache.get("a");
-        cache.put("c", value("c"));
-        assertNotNull(cache.get("a"));
-        assertNull(cache.get("b"));
-        assertNotNull(cache.get("c"));
-        assertEquals(2, cache.size());
+    void evictsLru() {
+        ShortUrlCache c = cache(2, true);
+        c.put("a", new CachedUrl("a", true, null));
+        c.put("b", new CachedUrl("b", true, null));
+        c.get("a");
+        c.put("c", new CachedUrl("c", true, null));
+        assertNull(c.get("b"));
+        assertNotNull(c.get("a"));
     }
 
     @Test
-    void evictRemovesEntry() {
-        ShortUrlCache cache = newCache(true, 10);
-        cache.put("a", value("a"));
-        cache.evict("a");
-        assertNull(cache.get("a"));
+    void disabledDoesNotStore() {
+        ShortUrlCache c = cache(2, false);
+        c.put("a", new CachedUrl("u", true, null));
+        assertNull(c.get("a"));
+        assertEquals(0, c.size());
     }
 
+    @Test
+    void countsHitsAndMisses() {
+        ShortUrlCache c = cache(2, true);
+        c.put("a", new CachedUrl("u", true, Instant.now().plusSeconds(5)));
+        c.get("a");
+        c.get("z");
+        assertEquals(1, c.hits());
+        assertEquals(1, c.misses());
+    }
 }

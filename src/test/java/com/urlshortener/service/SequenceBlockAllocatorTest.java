@@ -1,6 +1,6 @@
 package com.urlshortener.service;
 
-import com.urlshortener.UrlshortenerApplication;
+import com.urlshortener.UrlShortenerApplication;
 import com.urlshortener.config.AppProperties;
 import com.urlshortener.domain.CodeSequence;
 import com.urlshortener.repository.CodeSequenceRepository;
@@ -12,7 +12,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(classes = UrlshortenerApplication.class, properties = {"app.shortcode.sequence-block=3"})
+@SpringBootTest(classes = UrlShortenerApplication.class, properties = {"app.shortcode.sequence-block=3"})
 class SequenceBlockAllocatorTest {
     @Autowired
     CodeSequenceRepository repo;
